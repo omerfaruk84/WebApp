@@ -4,3 +4,8 @@ mpld3
 streamlit-aggrid
 seaborn
 pandas
+pymde
+umap
+hdbscan
+gseapy
+hydralit_components
