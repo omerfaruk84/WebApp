@@ -9,3 +9,7 @@ umap
 hdbscan
 gseapy
 hydralit_components
+streamlit-elements
+bokeh
+dask
+streamlit-bokeh-events
