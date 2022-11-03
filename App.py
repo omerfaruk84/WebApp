@@ -1117,7 +1117,7 @@ def convert_df(df):
 
 
 def calculateCorrelations2():   
-    method2 =  st.session_state.corrMethod  
+    #method2 =  st.session_state.corrMethod  
     global geneList
     genes = geneList.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
     genes2=[]
@@ -1125,6 +1125,7 @@ def calculateCorrelations2():
     for x in genes:
         genes2.append(x)
         genes2.append(x + "_2")
+    
         
     #if 'WGCorrMatrix' not in st.session_state: 
     #    return None
@@ -1153,7 +1154,7 @@ def calculateCorrelations2():
         # corrResults = corrResults[corrResults.nlargest(2)>0.6]        
     else:
         st.error("Please check your gene list, or click DRAW button!") 
-        return None             
+        cancel()           
     
     return corrResults  
 
@@ -1257,8 +1258,7 @@ def calculatePCA():
         PCASource = pd.read_parquet("K562_Orginal_Zscore.parquet") # rawDataFile
         pass
     else:
-        if 'corrResult' in st.session_state:
-            PCASource = calculateCorrelations2()
+        PCASource = calculateCorrelations2()
     n_components_ = min (st.session_state.numOfPCAComponents, len(PCASource.columns)-1,len(PCASource)-1)
    
     exist, value = hasher (["PCA",st.session_state.pcaSource,st.session_state.numOfPCAComponents,len(PCASource.columns),len(PCASource)]) 
