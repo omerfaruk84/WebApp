@@ -10,6 +10,7 @@ hdbscan
 gseapy
 hydralit_components
 streamlit-elements
+plotly
 bokeh
 dask
 streamlit-bokeh-events
