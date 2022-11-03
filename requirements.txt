@@ -1,6 +1,6 @@
 streamlit
 sklearn
 mpld3
-st_aggrid
+streamlit-aggrid
 seaborn
 pandas
