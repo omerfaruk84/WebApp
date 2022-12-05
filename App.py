@@ -1639,7 +1639,7 @@ def getData(dataSetName, genes = None):
     if dataSetName == "0" or dataSetName == "RAW":            
         data_file = "K562_Orginal_Zscore.parquet"
     elif dataSetName == "1" or dataSetName == "RAWTransposed":            
-        data_file = "K562_Orginal_ZscoreTransposed.parquet"            
+        data_file = "K562OrgZTransp.parquet"            
     elif dataSetName == "2" or dataSetName == "WGCOR":   
         data_file = "WGCorrMatrix.parquet"  
     elif dataSetName == "3" or dataSetName == "GECOR":         
