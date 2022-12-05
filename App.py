@@ -37,6 +37,28 @@ import os, signal, psutil
 from bokeh.models.widgets import Button
 from bokeh.models import CustomJS
 from streamlit_bokeh_events import streamlit_bokeh_events
+from google.oauth2 import service_account
+import pandas_gbq
+import pyarrow.parquet as pq
+
+
+credentials = service_account.Credentials.from_service_account_info(
+    {
+    "type": "service_account",
+    "project_id": "gwperturbseq",
+    "private_key_id": "086ba68d0133d5b4e587c727bb0ef379a20e14af",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+m2nfKmOUpXye\neMZuTPgfu5Y91IynqDUOeUnoJr1gTzhEmp963ELn9ajgO6NYi7lp7gHQJY7gpp8j\nlDpQdcowU5w/emkJ/hpgRLPk6NvnAGh+kAEud+RvLvEIoAKU4Fg1n+NG6B/LpQUj\nkFSI/8vPmzOe1vLI8E/KX50BUWZnPxVW43mtxUeWfha2aUVkKiURhjtfZ90LQiRs\nO1/YY2wYk2b2/9D4NJHzLsDgsdrcLfy93Go8c2Qrl9GaR5eSmXdhaj5LrTf8jDCs\nv0n+VQRSG8eFgpd210LurhRZVcW21Jtd96cAza3ffn+P/r44aukPgVYMt6eZ1oYZ\nDYYwsyFlAgMBAAECggEAA6c7REggK9c5JetrnMkYqabA9C5/jKYWlNBmqqDQ4i0R\nYunNV3+sCVQKga8op4D9OD04jAhLrm+I1fNYiFrCLCLg+Bl/RvdJ8MXGCwzj8KtC\nFXYPMXPGmvfvQDzkBX2Jb9llM/S/pLCb5tsiN6b+BqXOxKfIqvszSpdLn4qFruaq\nVEn9hrPwQ+Yp7X2CenutjqLOqJO200+DExPWQSXJkGSjRzTzkn/ccwreAD+55YXs\nzsafFScPqrfvWMqvH57qS8/tjNhEkgIK5HJWBZE4fc9K+TcElrl00JVuAsguh5CR\nPtCy22dW5T3s3WN2tvAGWKS2yAX606CSPs5HmgHmSQKBgQDnuCmCzVqe+baZAqzv\nFh2pLdv1a8jclPip3wwXHr1EmTnXmhRuFG4+17MLXEsH3XPdca9F0udKkNsMq5eX\nvj4cqOn/8TzZk0NjlKxNrQW44BmrOkck8E5ubpbzm+cEwDi4OeU/GXvf8UC8YIoL\n+0TAeRtM1+CEOR30M0z3dW8WOQKBgQDSlGuNS7ZT1XVmhjwOVZY2Bbpi9YhA+59p\ntHE94g8sGOPI0uH0VCKojNQZrYnTuRlGbGYtlB7NmA14P50DCRkOC0AybvGc0FP+\nimXwvgiZW56CS9wks/WHotrKMkwFjwjnLOe1zS2RdPwyHzkMRIZJ/d4vx2jnQ0rE\naGK3n4MEjQKBgQDXe8JWmkNIjW3J8twA5m8k0bm4C8jZoEtyJTLoGTTnIxrQLcAL\n8kHnfM1KpkQ8BytlZgAZjZx7EiQyLywk98xo+IfK9Hqi1riXVT26aklk+DnGqsZY\nSoSVW5BS8Msv9tWINIbEXB1/TqnlxFz78WmpF7ZUiniGXVtGqaJMiU+JuQKBgCGX\nF0jkqOLai+2cv/uxX1Kiu0aJ0AA9owIjjGTIqI7qMXuZV/23Zgfo3vRxoCirwAJh\nzDK9C+TTumJSE2Omkd6RoN3qoJPZD2zs+rHaPljoKnKyUx1vr1zBd5EFUOcaF9t4\naEWxwvEO7iO4o0r3q0wmOMj6UBuDumt2EzkjMq0JAoGAHIuITeoilhBTgAEYRbtd\nLtrx7PXVKeKF1VNSrbsgR31l+IsOCTrNcd6FxJeXQi/uCiRYq0iVzbT87IV5g9Gf\n3zKvk9dA8OU2/nZpajRqPTKqm0o9PELjZ3uLrOcea09n+g14cACneqOf/O0QwYhu\nceJIEBV23WnZCAV1gXKi6tA=\n-----END PRIVATE KEY-----\n",
+    "client_email": "perturbseq@gwperturbseq.iam.gserviceaccount.com",
+    "client_id": "114403865856498936028",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/perturbseq%40gwperturbseq.iam.gserviceaccount.com"
+    },
+)
+pandas_gbq.context.credentials = credentials
+pandas_gbq.context.project = "gwperturbseq"
+
 
 #region GENERAL
 Image.MAX_IMAGE_PIXELS = None
@@ -48,8 +70,8 @@ try :
 except :
     print('TSNE Cuda could not be imported, not using GPU.')
 
-global clusterLoc, time2, header, geneList
-geneList = ""
+global clusterLoc, time2, header
+
 distance_metric = ["correlation", "euclidean", "jaccard","braycurtis", "canberra", "chebyshev", "cityblock", "cosine", "dice",  "hamming",  "jensenshannon", "kulsinski", "kulczynski1", "mahalanobis", "matching", "minkowski", "rogerstanimoto", "russellrao", "seuclidean", "sokalmichener", "sokalsneath", "sqeuclidean", "yule"]
 
 pd.set_option("display.precision", 2)
@@ -167,6 +189,42 @@ def runNow():
     print("I am in run now")       
     st.session_state.rerun = 1
     st.session_state["isRunning"] = True
+
+def updateGeneList():
+    genes = st.session_state.geneList2.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
+    st.session_state["geneList"] =[]       
+    for gene in genes:
+        st.session_state["geneList"].append(gene)
+        st.session_state["geneList"].append(gene + "_2")
+    
+    
+
+def getSessionID():
+    '''
+    Streamlit hack to use report server debugging to get unique session IDs.
+    These session IDs are used in order to separate data from different users
+    and allows for easy sharing of plots using session IDs.
+    Raises
+    ------
+    RuntimeError
+        If the streamlit session object is not available.
+    Returns
+    -------
+    sessionID
+        The ID of the current streamlit user session.
+    '''
+    ctx = ReportThread.get_report_ctx()
+    this_session = None    
+    current_server = Server.get_current()
+    session_infos = Server.get_current()._session_info_by_id.values()
+
+    for session_info in session_infos:
+        s = session_info.session
+        if (not hasattr(s, '_main_dg') and s.enqueue == ctx.enqueue) :
+            this_session = s
+            
+    if this_session is None: raise RuntimeError("Oh noes. Couldn't get your Streamlit Session object")
+    return id(this_session)
     
 def main(): 
     c30, c31, c32 = st.columns([2.5, 1, 3])
@@ -206,17 +264,25 @@ def main():
             if 'tabs' not in st.session_state or st.session_state['tabs'] != "Regulation":   
                 
                 with st.expander('Core Settings', expanded = True):
-                    global geneList
-                    geneCount = "Empty"
-                    if "geneList2" in st.session_state and len(st.session_state.geneList2)>0:
-                        geneCount = str(len(st.session_state.geneList2.split("\n"))) + " genes"
                     
-                    geneList = st.text_area(
-                        "Gene List",
+                    
+                        
+                    st.selectbox('Cell Line', ["K562-Whole Genome", "K562-Essential", "RPE1-Whole Genome", "RPE1-Essential",],0, key = "dataSource", on_change= rerun)
+                    st.selectbox('Data Type', ["Perturbation", "Gene Expression"],0, key = "dataType", on_change= rerun)
+
+                    list1 = st.text_area(
+                        st.session_state.dataType.split(' ')[0] + " list",
                         height=100,placeholder="Please enter gene list seperated by comma, new line, space, or semicolon!",
                         help="Missing genes in the database will be ignored.",
-                        key = "geneList2"
-                    )
+                        key = "geneList2",
+                        on_change= updateGeneList
+                    ).replace(';',',').replace(' ', ',').replace('\n',',').split(',')
+                         
+                    if "geneList" in st.session_state and len(st.session_state.geneList)>0:
+                        str(int((len(st.session_state.geneList)-1)/2)) + " genes"                        
+                    else:
+                        "No genes entered!"
+                    
                     
                     st.selectbox('Graph Type', ["2D", "3D", "Both"],0, key = "graphType", on_change= rerun)
                     st.text_area(
@@ -264,7 +330,7 @@ def main():
                     elif st.session_state.embedSource ==  "Raw Data":
                         maxSize = len(pd.read_parquet("K562_Orginal_Zscore.parquet").columns)-1
                     else:
-                        data = calculateCorrelations2()
+                        data = calculateCorrelations()
                         if len(data.columns)>3:
                             maxSize = len(data.columns)-1                    
                         data = ""  
@@ -289,7 +355,7 @@ def main():
                     elif st.session_state.UMAPembedSource ==  "Raw Data":
                         maxSize = len(rawDataFile.columns)-1
                     else:
-                        data = calculateCorrelations2()
+                        data = calculateCorrelations()
                         if len(data.columns)>3:
                             maxSize = len( data.columns)-1                    
                         data = ""            
@@ -312,7 +378,7 @@ def main():
                     elif st.session_state.tSNEembedSource ==  "Raw Data":
                         maxSize = len(rawDataFile.columns)-1
                     else:
-                        data = calculateCorrelations2()
+                        data = calculateCorrelations()
                         if len(data.columns)>3:
                             maxSize = len( data.columns)-1                    
                         data = ""
@@ -402,123 +468,88 @@ def runCalculations():
    
     if "geneList2" not in st.session_state and st.session_state['tabs'] != "Regulation":
         "Please enter the genes that you are interested in to the text area!"
-        return
+        cancel()
     
-    if st.session_state['tabs'] == "Correlation":
-        #rawDataFile = loadData("RAW")
-        # exist, value = hasher([st.session_state.corrMethod, len(st.session_state.geneList), len(rawDataFile.index), len(rawDataFile.columns), st.session_state["corrLimitLow"]])  
-        #rawDataFile = ""
-        
-        #if not exist:
-        data = calculateCorrelations2() # calculateCorrelations()
-            #st.session_state.dataStore[value] =st.session_state["corrResult"]
+    if st.session_state['tabs'] == "Correlation":        
+        #Get correlations for perturbations        
+        data = calculateCorrelations()
         time3 = time.time()
-        
-        data2 = calculateCorrelations3()
-        
-        
         print("Step3 Calc Corr:"  + str(time3 - time2))
-        styles = [dict(selector="th", props=[('width', '20px')]),
-                  dict(selector="th.col_heading",
-                   props=[("writing-mode", "vertical-rl"),
-                          ('transform', 'rotateZ(-90deg)'), 
-                          ('height', '290px'),
-                          ('vertical-align', 'top')])]
+        #styles = [dict(selector="th", props=[('width', '20px')]), dict(selector="th.col_heading",props=[("writing-mode", "vertical-rl"),('transform', 'rotateZ(-90deg)'),('height', '290px'),('vertical-align', 'top')])]
         #st.dataframe(st.session_state.corrResult.style.format("{:.2f}").background_gradient(cmap=st.session_state.colorx, vmin =st.session_state.cRanger[0],vmax = st.session_state.cRanger[1] ))
         #st.session_state.corrResult.style.format("{:.2f}").background_gradient(cmap=st.session_state.colorx, vmin =st.session_state.cRanger[0],vmax = st.session_state.cRanger[1] )
         #st.write(st.session_state.corrResult.style.format("{:.2f}").background_gradient(cmap=st.session_state.colorx, vmin =st.session_state.cRanger[0],vmax = st.session_state.cRanger[1] ))
-        
-        
+                
         if data is not None:
             st.title("Correlation Table") 
-            st.write(data.style.format("{:.2f}"))
-            csv = convert_df(data)
-            st.download_button(label="Download sgRNA Corr. data",data=csv,file_name='CorrelationTable.csv', mime='text/csv', key = "downloadTableBtn", on_click = rerun)
+            try:
+                st.write(data.style.format("{:.2f}"))
+            except:
+                "This is a huge table. Please download it to view!"
+                "Map generation may take some time. Please wait..."
+                pass
+            csv = convert_df(data)           
+            st.download_button(label="Download Corr. Table",data=csv,file_name='CorrelationTable.csv', mime='text/csv', key = "downloadTableBtn", on_click = rerun)
         
-        if data2 is not None:
-            csv = convert_df(data2)
-            st.download_button(label="Download Gene Corr. data",data=csv,file_name='CorrelationTable.csv', mime='text/csv', key = "downloadTableBtn2", on_click = rerun)
-        
-        
+                        
         time4 = time.time()
         print("Step4 Corr Table:"  + str(time4 - time3))
-            
-        #AgGrid(corrResults2,precision = 2)
-        
-        
-        # exist, value = hasher([st.session_state.zScore,st.session_state.sscale, len(st.session_state.corrResult),st.session_state.distanceMetric, st.session_state.linkageSelection,
-           # st.session_state.cRanger[0],st.session_state.cRanger[1],st.session_state.colorx ])      
-        
-        
-        #if not exist:
+    
         if data is not None:
             plotCorrMap(data)   
-        #st.session_state.dataStore[value] = st.session_state["g"]      
             if "g" in st.session_state:
-                st.title("Correlation Map of Perturbations")             
+                st.title("Correlation map of " + st.session_state.dataType)             
                 plt.rcParams['figure.dpi'] = 100
                 st.pyplot(st.session_state.g._figure)
                 img = io.BytesIO()       
                 st.session_state.g._figure.savefig(img, format='png')
-                st.download_button(label="Download image",data=img,file_name="sgRNA KD Corr.png",mime="image/png", key = "btn1", on_click = rerun)
+                st.download_button(label="Download image",data=img,file_name="Corr.png",mime="image/png", key = "btn1", on_click = rerun)
             
         time5 = time.time()
-        print("Step5 PlotCorrmAP1:"  + str(time5 - time4))
-        
-        if data2 is not None:
-            plotCorrMap(data2)  
-            if "g" in st.session_state:
-                st.title("Correlation Map of Expressions")            
-                st.pyplot(st.session_state.g._figure)
-                img2 = io.BytesIO()       
-                st.session_state.g._figure.savefig(img2, format='png')
-                st.download_button(label="Download image",data=img2,file_name="Gene Expression Corr.png",mime="image/png", key = "btn2", on_click = rerun)
-            
-        data = None
-        data2 = None
+        print("Step5 PlotCorrmAP1:"  + str(time5 - time4))       
+        data = None        
         st.session_state.g = None 
-            
-        st.session_state.rerun = 0
-        
-        time6 = time.time()        
-        print("Step5B PlotCorrmAP2:"  + str(time6 - time5))        
+        st.session_state.rerun = 0        
+              
    
     if st.session_state['tabs'] == "PCA":
         time6 = time.time()
-        st.session_state["PcaResult"] =calculatePCA()
-        #st.dataframe(st.session_state.PcaResult)       
+        result =calculatePCA()
+        
+        if "geneList" not in st.session_state:            
+            cancel()
+        else:
+            st.session_state["PcaResult"] = result           
+            if not st.session_state.hdbClusteringPCA:
+                st.title("PCA")
+                plotGraph(st.session_state["PcaResult"])            
+            if st.session_state.hdbClusteringPCA:
+                runHDBClustering(0)         
         time7 = time.time()
-        print("Step5B pca RESULTS:"  + str(time7 - time6))
-         #2D 3D graphs
-        st.session_state["PcaResult"] 
-        if not st.session_state.hdbClusteringPCA:
-            st.title("PCA")
-            plotGraph(st.session_state["PcaResult"])
-            
-        if st.session_state.hdbClusteringPCA:
-            runHDBClustering(0)   
+        print("Step5B pca RESULTS:"  + str(time7 - time6))        
+        
+          
  
     if st.session_state['tabs'] == "MDE":      
         time7 = time.time()       
         
         st.session_state["pymdeResult"] = pymdeEmbeding()
         if st.session_state["pymdeResult"] is None:
+            "Something went wrong with MDE embeding!"
             return 
-                       
-        time8 = time.time()
-        print("Step6 MDE Embeding:"  + str(time8 - time7))
-        
-        #2D 3D graphs          
-        if not st.session_state.hdbClusteringMDE:
-            st.title("MDE Embeding")
-            plotGraph(st.session_state["pymdeResult"])        
-
-    
+                     
         time9 = time.time()
-        print("Step6 MDE Embeding b:"  + str(time9 - time8))
+        print("Step6 MDE Embeding b:"  + str(time9 - time7))
         
         if st.session_state.hdbClusteringMDE:
-            runHDBClustering(1)    
+            try:
+                runHDBClustering(1)
+            except Exception as e:                
+                st.warning("HDB clustering has failed!")                
+                plotGraph(st.session_state["pymdeResult"]) 
+        else:
+            st.title("MDE Embeding")
+            plotGraph(st.session_state["pymdeResult"])      
     
     if st.session_state['tabs'] == "UMAP":      
         time8 = time.time()   
@@ -542,6 +573,7 @@ def runCalculations():
             
     if st.session_state['tabs'] == "tSNE":      
         time10 = time.time()
+        
         st.session_state["tSNEResult"] = tsnePlot()
         if st.session_state["tSNEResult"] is None:
             return 
@@ -917,8 +949,8 @@ def runCalculations():
     st.session_state.rerun = 0    
 
 def drawHeatMap():        
-    global geneList
-    genes = geneList.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
+    
+    genes = st.session_state.geneList
     genes2=[]
     targets =[]
        
@@ -955,13 +987,19 @@ def drawHeatMap():
             sscale = 1
         
         #fig = plt.Figure(figsize=(1*int(zoomFactor), 1*int(zoomFactor)))      
-        #3 + 0.25 * len(gids_found)        
+        #3 + 0.25 * len(gids_found)  
+        st.write(len(results))      
         g = sns.clustermap(results, z_score = zScore,        
         standard_scale = sscale,  metric = st.session_state.distanceMetric2,method = st.session_state.linkageSelection2,
-        vmin=st.session_state.cRanger2[0], vmax=st.session_state.cRanger2[1],cmap = st.session_state.colorx2, figsize=(3 + 0.26 * len(results),3 + 0.26 * len(results)))
+        
+        vmin=st.session_state.cRanger2[0], vmax=st.session_state.cRanger2[1],cmap = st.session_state.colorx2, figsize=(3 + 0.26 * len(results.index),3 + 0.26 * len(results)))
         plt.rcParams['figure.dpi'] = 100                
         st.pyplot(g._figure)
-        st.altair_chart(g._figure)
+        img2 = io.BytesIO()       
+        g._figure.savefig(img2, format='png')
+        st.download_button(label="Download image",data=img2,file_name="HeatMap.png",mime="image/png", key = "btn2", on_click = rerun)
+
+        #st.altair_chart(g._figure)
         
         
         
@@ -1017,7 +1055,8 @@ def runHDBClustering(x):
     currentHDBScan= None
     currenthdbClustering = None
     data  = None
-    scatter = None
+    scatter = None    
+  
     if x==0:
         st.title("PCA & HDB Scan Clustering")
         fig2D, fig3D , scatter,st.session_state["HDBScanResultPCA"] = HDBScanClustering("PcaResult",st.session_state["PcaResult"])
@@ -1116,25 +1155,21 @@ def convert_df(df):
      return df.to_csv().encode('utf-8')
 
 
-def calculateCorrelations2():   
+def calculateCorrelations():   
     #method2 =  st.session_state.corrMethod  
-    global geneList
-    genes = geneList.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
-    genes2=[]
-       
-    for x in genes:
-        genes2.append(x)
-        genes2.append(x + "_2")
-    
-        
-    #if 'WGCorrMatrix' not in st.session_state: 
-    #    return None
-    
-    if len(genes2)>2:
-        
-        corrResults = pd.read_parquet("WGCorrMatrix.parquet").filter(items = genes2)
-        corrResults = corrResults.filter(items = genes2, axis =0)        
-        if st.session_state["removeLowCorr"]:          
+    if "geneList" not in st.session_state:
+        "Upps. Gene list is empty."
+        return     
+      
+    if len(st.session_state.geneList)>2: 
+        if st.session_state.dataType == "Perturbation":
+            corrResults = getData("2")            
+        else:
+            corrResults = getData("3")    
+      
+        corrResults = corrResults.filter(items = st.session_state.geneList, axis =0)
+             
+        if "removeLowCorr" in st.session_state and st.session_state["removeLowCorr"]:          
             corrResults = corrResults.replace(1,-99)
             dfMax = corrResults.max(axis=1)            
             dfMax = dfMax[dfMax>st.session_state["corrLimitLow"]]
@@ -1143,80 +1178,18 @@ def calculateCorrelations2():
             corrResults = corrResults.replace(-1,99)
             dfMin = corrResults.min(axis=1)            
             dfMin = dfMin[dfMin<(st.session_state["corrLimitLow"]*-1)]            
-            combined= list(dfMin.index.union(dfMax.index.values).values)
-            
+            combined= list(dfMin.index.union(dfMax.index.values).values)            
             corrResults = corrResults.replace(99,-1)
             
             corrResults = corrResults.filter(items = combined)
-            corrResults = corrResults.filter(items = combined, axis =0)
-           
-        
-        # corrResults = corrResults[corrResults.nlargest(2)>0.6]        
+            corrResults = corrResults.filter(items = combined, axis =0)           
     else:
         st.error("Please check your gene list, or click DRAW button!") 
         cancel()           
     
     return corrResults  
 
-def calculateCorrelations3():   
-    method2 =  st.session_state.corrMethod  
-    global geneList
-    genes = geneList.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
-    genes2=[]
-       
-    for x in genes:
-        genes2.append(x)      
-        
-    #if 'GECorrMatrix' not in st.session_state: 
-    #    return None
-    
-    if len(genes2)>2:
-        #len(st.session_state['GECorrMatrix'].columns)
-        corrResults = pd.read_parquet("GeneExpressionBasedCorrMatrix.parquet").filter(items = genes2)
-        corrResults = corrResults.filter(items = genes2, axis =0)        
-        if st.session_state["removeLowCorr"]:          
-            corrResults = corrResults.replace(1,-99)
-            dfMax = corrResults.max(axis=1)            
-            dfMax = dfMax[dfMax>st.session_state["corrLimitLow"]]
-            
-            corrResults = corrResults.replace(-99,1)
-            corrResults = corrResults.replace(-1,99)
-            dfMin = corrResults.min(axis=1)            
-            dfMin = dfMin[dfMin<(st.session_state["corrLimitLow"]*-1)]            
-            combined= list(dfMin.index.union(dfMax.index.values).values)
-            
-            corrResults = corrResults.replace(99,-1)            
-            corrResults = corrResults.filter(items = combined)
-            corrResults = corrResults.filter(items = combined, axis =0)           
-        
-        # corrResults = corrResults[corrResults.nlargest(2)>0.6]        
-    else:
-        st.error("Please check your gene list, or click DRAW button!")        
-        return None
-    
-    return corrResults  
-            
-#@st.experimental_memo     
-def calculateCorrelations():   
-    method2 =  st.session_state.corrMethod  
-    global geneList
-    genes = geneList.replace(';',',').replace(' ', ',').replace('\n',',').split(',')
-    genes2=[]
-       
-    for x in genes:
-        genes2.append(x)
-        genes2.append(x + "_2")
-    
-   
-    print(len(rawDataFile.columns))
-    if len(genes2)>2:
-        corrResults = rawDataFile.filter(items = genes2, axis =1)        
-    else:
-        st.error("Please check your gene list, or click DRAW button!")        
-        cancel()
-    print(len(corrResults.columns))
-    return corrResults.astype(float).corr(method=method2.lower())   
-        
+
 def plotCorrMap(data):        
         if data.empty:
             return
@@ -1252,30 +1225,40 @@ def hasher(data):
     else:
         return True, st.session_state.dataStore[hashed]
 
+@st.cache
 def calculatePCA():
+    if "geneList" not in st.session_state:
+        "Upps. Gene list is empty."
+        return None
+    
     PCASource = None
-    if st.session_state.pcaSource == "Raw Data":  # else "Correlation Data"
-        PCASource = pd.read_parquet("K562_Orginal_Zscore.parquet") # rawDataFile
-        pass
+    if st.session_state.pcaSource == "Raw Data":  # else "Correlation Data"   
+        if st.session_state.dataType == "Perturbation":  
+            PCASource = getData("1").transpose() 
+        else:
+            PCASource = getData("0").transpose()  
     else:
-        PCASource = calculateCorrelations2()
+        PCASource = calculateCorrelations()
+                   
+                  
+            
     n_components_ = min (st.session_state.numOfPCAComponents, len(PCASource.columns)-1,len(PCASource)-1)
    
-    exist, value = hasher (["PCA",st.session_state.pcaSource,st.session_state.numOfPCAComponents,len(PCASource.columns),len(PCASource)]) 
-    if exist:
-        return value
-    else:        
-        pca = PCA(n_components=n_components_)
-        st.session_state["Labels"] = np.array(PCASource.index)
-        result =pca.fit_transform(PCASource) 
-        st.session_state.dataStore[value] =result
-        return result
+    pca = PCA(n_components=n_components_)
+    st.session_state["Labels"] = np.array(PCASource.index)
+    result =pca.fit_transform(PCASource) 
+    return result
 
+@st.cache
 def pymdeEmbeding():
     MdeEmbedSource = None  
     if st.session_state.embedSource == "Raw Data":  # else "Correlation Data"
-        MdeEmbedSource = rawDataFile.to_numpy()
-        st.session_state["Labels"] = np.array(rawDataFile.index)       
+        if st.session_state.dataType == "Perturbation":  
+            MdeEmbedSource = getData("1") 
+        else:
+            MdeEmbedSource = getData("0")        
+        st.session_state["Labels"] = np.array(MdeEmbedSource.index)
+        MdeEmbedSource =MdeEmbedSource.to_numpy()       
     elif st.session_state.embedSource == "PCA Data":
         if "PcaResult" in st.session_state:
             MdeEmbedSource = st.session_state["PcaResult"]
@@ -1283,8 +1266,10 @@ def pymdeEmbeding():
             "PCA calculation was not performed! Please go to PCA tab to perform PCA or change the Embeding source from the sidebar!" 
             return                 
     else:
+        "Here it is 1"
         if "corrResult" in st.session_state:
-            MdeEmbedSource = calculateCorrelations2()
+            "Here it is"
+            MdeEmbedSource = calculateCorrelations()
             st.session_state["Labels"] = np.array(MdeEmbedSource.index) 
             MdeEmbedSource = MdeEmbedSource.to_numpy()
     
@@ -1295,15 +1280,15 @@ def pymdeEmbeding():
     else:
         constraint_ = pymde.Centered()    
     
-    exist, value = hasher (["pyMDE", st.session_state.embedSource,st.session_state.pyMdeConstraint,len(MdeEmbedSource), st.session_state.repulsiveFraction , st.session_state.embeddingDim]) 
-    if exist:
-        return value
-    else:        
-        pymde.seed(0)        
-        result =  pymde.preserve_neighbors(MdeEmbedSource,constraint=constraint_,
-        repulsive_fraction=st.session_state.repulsiveFraction , embedding_dim=st.session_state.embeddingDim, verbose=True).embed()
-        st.session_state.dataStore[value] =result
-        return result
+    #exist, value = hasher (["pyMDE", st.session_state.embedSource,st.session_state.pyMdeConstraint,len(MdeEmbedSource), st.session_state.repulsiveFraction , st.session_state.embeddingDim]) 
+    #if exist:
+        #return value
+    #else:        
+    pymde.seed(0)        
+    result =  pymde.preserve_neighbors(MdeEmbedSource,constraint=constraint_,
+    repulsive_fraction=st.session_state.repulsiveFraction , embedding_dim=st.session_state.embeddingDim, verbose=True).embed()
+        #st.session_state.dataStore[value] =result
+    return result
 
 def umapPlot():
     UMAPEmbedSource = None  
@@ -1318,7 +1303,7 @@ def umapPlot():
             return                 
     else:
         if "corrResult" in st.session_state:
-            UMAPEmbedSource = calculateCorrelations2()
+            UMAPEmbedSource = calculateCorrelations()
             st.session_state["Labels"] = np.array(UMAPEmbedSource.index) 
             UMAPEmbedSource = UMAPEmbedSource.to_numpy()
 
@@ -1332,6 +1317,7 @@ def umapPlot():
         st.session_state.dataStore[value] =result
         return result   
 
+@st.cache
 def tsnePlot():
     
     tSNEEmbedSource = None  
@@ -1346,17 +1332,18 @@ def tsnePlot():
             return                 
     else:
         if "corrResult" in st.session_state:
-            tSNEEmbedSource = calculateCorrelations2()
+            tSNEEmbedSource = calculateCorrelations()
             st.session_state["Labels"] = np.array(tSNEEmbedSource.index)
             tSNEEmbedSource = tSNEEmbedSource.to_numpy()     
    
-    exist, value = hasher (["tSNE",st.session_state.tSNEembedSource,st.session_state.tSNEPerplexity,len(tSNEEmbedSource), st.session_state.tSNElearning_rate , st.session_state.tSNEn_iter, st.session_state.tSNEearly_exaggeration]) 
-    if exist:
-        return value
-    else:       
-        result = tsneReduce(tSNEEmbedSource, perp=st.session_state.tSNEPerplexity, learning_rate=st.session_state.tSNElearning_rate, n_iter=st.session_state.tSNEn_iter, early_exaggeration=st.session_state.tSNEearly_exaggeration)
-        st.session_state.dataStore[value] =result
-        return result
+    #exist, value = hasher (["tSNE",st.session_state.tSNEembedSource,st.session_state.tSNEPerplexity,len(tSNEEmbedSource), st.session_state.tSNElearning_rate , st.session_state.tSNEn_iter, st.session_state.tSNEearly_exaggeration]) 
+    #if exist:
+        #return value
+    #else:  
+    tSNEEmbedSource     
+    result = tsneReduce(tSNEEmbedSource, perp=st.session_state.tSNEPerplexity, learning_rate=st.session_state.tSNElearning_rate, n_iter=st.session_state.tSNEn_iter, early_exaggeration=st.session_state.tSNEearly_exaggeration)
+    #st.session_state.dataStore[value] =result
+    return result
 
 def SpectralCoClustering():
     print("SpectralCoClustering")
@@ -1377,7 +1364,7 @@ def SpectralCoClustering():
     else:
         if "corrResult" in st.session_state:
             
-            biClusteringSource = calculateCorrelations2()
+            biClusteringSource = calculateCorrelations()
             st.session_state["Labels"] = np.array(biClusteringSource.index) 
 
    
@@ -1422,16 +1409,16 @@ def HDBScanClustering(datasource,data):
     
    
     
-    exist, value = hasher ([datasource, st.session_state.min_cluster_size_,st.session_state.metric_ ,st.session_state.cluster_selection_method_, 
-                            st.session_state.min_samples_,st.session_state.cluster_selection_epsilon_, len(data), data.size]) 
-    if exist:
-        clusterer = value
-    else:        
-        pymde.seed(0)        
-        clusterer = hdbscan.HDBSCAN(min_cluster_size=st.session_state.min_cluster_size_,metric=st.session_state.metric_ ,
+    #exist, value = hasher ([datasource, st.session_state.min_cluster_size_,st.session_state.metric_ ,st.session_state.cluster_selection_method_, 
+    #                        st.session_state.min_samples_,st.session_state.cluster_selection_epsilon_, len(data), data.size]) 
+    #if exist:
+    #    clusterer = value
+    #else:        
+    pymde.seed(0)        
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=st.session_state.min_cluster_size_,metric=st.session_state.metric_ ,
                 cluster_selection_method =st.session_state.cluster_selection_method_.lower(), 
                 min_samples=st.session_state.min_samples_, cluster_selection_epsilon=st.session_state.cluster_selection_epsilon_).fit(data)
-        st.session_state.dataStore[value] =clusterer
+    #st.session_state.dataStore[value] =clusterer
         
     clusterCount = clusterer.labels_.max()+1
     if clusterCount>0:
@@ -1468,7 +1455,7 @@ def HDBScanClustering(datasource,data):
     
     
                     
-    while i < clusterCount:
+    while i < clusterCount:        
         x=0
         y=0
         count =0
@@ -1480,24 +1467,29 @@ def HDBScanClustering(datasource,data):
                points.append([float(data[row][0]),float(data[row][1])])
                count+=1               
         points = np.array(points, np.float16)
+        
+        
            
         if count>0:
-            clusterCenters.append([x/count,y/count])
-            hull = ConvexHull(points)
-            # get x and y coordinates
-            # repeat last point to close the polygon
-            x_hull = np.append(points[hull.vertices,0],
-                             points[hull.vertices,0][0])
-            y_hull = np.append(points[hull.vertices,1],
-                             points[hull.vertices,1][0])
-            # interpolate
-            dist = np.sqrt((x_hull[:-1] - x_hull[1:])**2 + (y_hull[:-1] - y_hull[1:])**2)
-            dist_along = np.concatenate(([0], dist.cumsum()))
-            spline, u = interpolate.splprep([x_hull, y_hull],u=dist_along, s=0, per=1)
-            interp_d = np.linspace(dist_along[0], dist_along[-1], 50)
-            interpx, interpy = interpolate.splev(interp_d, spline)
-            interp_x.append(interpx) 
-            interp_y.append(interpy)                       
+            clusterCenters.append([x/count,y/count])            
+            try:
+                hull = ConvexHull(points)
+                # get x and y coordinates
+                # repeat last point to close the polygon
+                x_hull = np.append(points[hull.vertices,0],
+                                points[hull.vertices,0][0])
+                y_hull = np.append(points[hull.vertices,1],
+                                points[hull.vertices,1][0])
+                # interpolate
+                dist = np.sqrt((x_hull[:-1] - x_hull[1:])**2 + (y_hull[:-1] - y_hull[1:])**2)
+                dist_along = np.concatenate(([0], dist.cumsum()))
+                spline, u = interpolate.splprep([x_hull, y_hull],u=dist_along, s=0, per=1)
+                interp_d = np.linspace(dist_along[0], dist_along[-1], 50)
+                interpx, interpy = interpolate.splev(interp_d, spline)
+                interp_x.append(interpx) 
+                interp_y.append(interpy) 
+            except:
+                pass                      
         i+=1
     fig3D = None
     fig2D = None
@@ -1524,7 +1516,7 @@ def HDBScanClustering(datasource,data):
         
         # Highlight clusters
         if st.session_state.clusteringHighlight:   
-            for i in range(0,clusterCount):       
+            for i in range(0,len(interp_x)):       
                 plt.fill(interp_x[i], interp_y[i], alpha=0.3, c=color_palette[i])
     
     # Show cluster centers
@@ -1634,6 +1626,33 @@ def PerformEnrichR(x):
             st.session_state.dataStore[value] =enr.results
             return enr.results
 
+@st.cache
+def getData(dataSetName, genes = None):
+    data_file=""
+    if genes == None:
+        if "geneList" in st.session_state and len(st.session_state.geneList)>0:        
+            genes = st.session_state.geneList
+        else:
+            return None
+                  
+    timeStart = time.time()  
+    if dataSetName == "0" or dataSetName == "RAW":            
+        data_file = "K562_Orginal_Zscore.parquet"
+    elif dataSetName == "1" or dataSetName == "RAWTransposed":            
+        data_file = "K562_Orginal_ZscoreTransposed.parquet"            
+    elif dataSetName == "2" or dataSetName == "WGCOR":   
+        data_file = "WGCorrMatrix.parquet"  
+    elif dataSetName == "3" or dataSetName == "GECOR":         
+        data_file = "GeneExpressionBasedCorrMatrix.parquet"  
+    else: 
+        return None
+        
+    parquet_file = pq.ParquetFile(data_file)
+    columns_in_file = [c for c in genes if c in parquet_file.schema.names]
+    filex = pd.read_parquet(data_file,columns = columns_in_file)
+    print("Dataset Name:" + dataSetName + "  File:" +  data_file + "  Data load time:"  + str(time.time() - timeStart))
+    return filex
+        
 def loadData(dataSetName):#dataSet =  pd.read_parquet("LRLG_FilteredExpressionFile.pq")
     
     if dataSetName == "0" or dataSetName == "RAW":
@@ -1898,7 +1917,34 @@ def genData() :
         dfsave.to_csv( str(datadir / 'dfreduce_') + file_name + '.csv', index=False)
         st.sidebar.success('File \'{}\' saved!'.format(file_name))
 
-if __name__ == '__main__':   
+
+
+def loadData2():#dataSet =  pd.read_parquet("LRLG_FilteredExpressionFile.pq")   
+  filename = "K562_full_from_raw.txtTransposed.parquet"
+  
+  dt1 = pd.read_parquet(filename)  
+  dt1 = dt1.reindex(sorted(dt1.columns), axis=1)
+
+  for col in list(dt1.columns):
+      if col.find(".")>-1:         
+          dt1.rename({col:col.replace(".", "_")}, axis = 1,inplace = True)      
+  for ind in list(dt1.index):
+      if ind.find(".")>-1:
+          dt1.rename(index={ind:ind.replace(".", "_")}, inplace = True)  
+ 
+  dt1.to_parquet("f" + filename) 
+    
+    
+
+def findPerturbationsRegulating(geneX):
+    df = pandas_gbq.read_gbq("SELECT GeneSymbol," + geneX + "  FROM `gwperturbseq.NewData.TableNew` ORDER BY " + geneX)
+    df
+    return df
+    
+    
+if __name__ == '__main__':
+    #loadData2()
+    #findPerturbationsRegulating("SLC39A10")   
     if 'rerun' not in st.session_state:
         st.session_state['rerun'] = 1 
         
