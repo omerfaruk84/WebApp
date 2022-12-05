@@ -37,27 +37,27 @@ import os, signal, psutil
 from bokeh.models.widgets import Button
 from bokeh.models import CustomJS
 from streamlit_bokeh_events import streamlit_bokeh_events
-from google.oauth2 import service_account
-import pandas_gbq
+#from google.oauth2 import service_account
+#import pandas_gbq
 import pyarrow.parquet as pq
 
 
-credentials = service_account.Credentials.from_service_account_info(
-    {
-    "type": "service_account",
-    "project_id": "gwperturbseq",
-    "private_key_id": "086ba68d0133d5b4e587c727bb0ef379a20e14af",
-    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+m2nfKmOUpXye\neMZuTPgfu5Y91IynqDUOeUnoJr1gTzhEmp963ELn9ajgO6NYi7lp7gHQJY7gpp8j\nlDpQdcowU5w/emkJ/hpgRLPk6NvnAGh+kAEud+RvLvEIoAKU4Fg1n+NG6B/LpQUj\nkFSI/8vPmzOe1vLI8E/KX50BUWZnPxVW43mtxUeWfha2aUVkKiURhjtfZ90LQiRs\nO1/YY2wYk2b2/9D4NJHzLsDgsdrcLfy93Go8c2Qrl9GaR5eSmXdhaj5LrTf8jDCs\nv0n+VQRSG8eFgpd210LurhRZVcW21Jtd96cAza3ffn+P/r44aukPgVYMt6eZ1oYZ\nDYYwsyFlAgMBAAECggEAA6c7REggK9c5JetrnMkYqabA9C5/jKYWlNBmqqDQ4i0R\nYunNV3+sCVQKga8op4D9OD04jAhLrm+I1fNYiFrCLCLg+Bl/RvdJ8MXGCwzj8KtC\nFXYPMXPGmvfvQDzkBX2Jb9llM/S/pLCb5tsiN6b+BqXOxKfIqvszSpdLn4qFruaq\nVEn9hrPwQ+Yp7X2CenutjqLOqJO200+DExPWQSXJkGSjRzTzkn/ccwreAD+55YXs\nzsafFScPqrfvWMqvH57qS8/tjNhEkgIK5HJWBZE4fc9K+TcElrl00JVuAsguh5CR\nPtCy22dW5T3s3WN2tvAGWKS2yAX606CSPs5HmgHmSQKBgQDnuCmCzVqe+baZAqzv\nFh2pLdv1a8jclPip3wwXHr1EmTnXmhRuFG4+17MLXEsH3XPdca9F0udKkNsMq5eX\nvj4cqOn/8TzZk0NjlKxNrQW44BmrOkck8E5ubpbzm+cEwDi4OeU/GXvf8UC8YIoL\n+0TAeRtM1+CEOR30M0z3dW8WOQKBgQDSlGuNS7ZT1XVmhjwOVZY2Bbpi9YhA+59p\ntHE94g8sGOPI0uH0VCKojNQZrYnTuRlGbGYtlB7NmA14P50DCRkOC0AybvGc0FP+\nimXwvgiZW56CS9wks/WHotrKMkwFjwjnLOe1zS2RdPwyHzkMRIZJ/d4vx2jnQ0rE\naGK3n4MEjQKBgQDXe8JWmkNIjW3J8twA5m8k0bm4C8jZoEtyJTLoGTTnIxrQLcAL\n8kHnfM1KpkQ8BytlZgAZjZx7EiQyLywk98xo+IfK9Hqi1riXVT26aklk+DnGqsZY\nSoSVW5BS8Msv9tWINIbEXB1/TqnlxFz78WmpF7ZUiniGXVtGqaJMiU+JuQKBgCGX\nF0jkqOLai+2cv/uxX1Kiu0aJ0AA9owIjjGTIqI7qMXuZV/23Zgfo3vRxoCirwAJh\nzDK9C+TTumJSE2Omkd6RoN3qoJPZD2zs+rHaPljoKnKyUx1vr1zBd5EFUOcaF9t4\naEWxwvEO7iO4o0r3q0wmOMj6UBuDumt2EzkjMq0JAoGAHIuITeoilhBTgAEYRbtd\nLtrx7PXVKeKF1VNSrbsgR31l+IsOCTrNcd6FxJeXQi/uCiRYq0iVzbT87IV5g9Gf\n3zKvk9dA8OU2/nZpajRqPTKqm0o9PELjZ3uLrOcea09n+g14cACneqOf/O0QwYhu\nceJIEBV23WnZCAV1gXKi6tA=\n-----END PRIVATE KEY-----\n",
-    "client_email": "perturbseq@gwperturbseq.iam.gserviceaccount.com",
-    "client_id": "114403865856498936028",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/perturbseq%40gwperturbseq.iam.gserviceaccount.com"
-    },
-)
-pandas_gbq.context.credentials = credentials
-pandas_gbq.context.project = "gwperturbseq"
+#credentials = service_account.Credentials.from_service_account_info(
+#    {
+#    "type": "service_account",
+#    "project_id": "gwperturbseq",
+#    "private_key_id": "086ba68d0133d5b4e587c727bb0ef379a20e14af",
+#    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+m2nfKmOUpXye\neMZuTPgfu5Y91IynqDUOeUnoJr1gTzhEmp963ELn9ajgO6NYi7lp7gHQJY7gpp8j\nlDpQdcowU5w/emkJ/hpgRLPk6NvnAGh+kAEud+RvLvEIoAKU4Fg1n+NG6B/LpQUj\nkFSI/8vPmzOe1vLI8E/KX50BUWZnPxVW43mtxUeWfha2aUVkKiURhjtfZ90LQiRs\nO1/YY2wYk2b2/9D4NJHzLsDgsdrcLfy93Go8c2Qrl9GaR5eSmXdhaj5LrTf8jDCs\nv0n+VQRSG8eFgpd210LurhRZVcW21Jtd96cAza3ffn+P/r44aukPgVYMt6eZ1oYZ\nDYYwsyFlAgMBAAECggEAA6c7REggK9c5JetrnMkYqabA9C5/jKYWlNBmqqDQ4i0R\nYunNV3+sCVQKga8op4D9OD04jAhLrm+I1fNYiFrCLCLg+Bl/RvdJ8MXGCwzj8KtC\nFXYPMXPGmvfvQDzkBX2Jb9llM/S/pLCb5tsiN6b+BqXOxKfIqvszSpdLn4qFruaq\nVEn9hrPwQ+Yp7X2CenutjqLOqJO200+DExPWQSXJkGSjRzTzkn/ccwreAD+55YXs\nzsafFScPqrfvWMqvH57qS8/tjNhEkgIK5HJWBZE4fc9K+TcElrl00JVuAsguh5CR\nPtCy22dW5T3s3WN2tvAGWKS2yAX606CSPs5HmgHmSQKBgQDnuCmCzVqe+baZAqzv\nFh2pLdv1a8jclPip3wwXHr1EmTnXmhRuFG4+17MLXEsH3XPdca9F0udKkNsMq5eX\nvj4cqOn/8TzZk0NjlKxNrQW44BmrOkck8E5ubpbzm+cEwDi4OeU/GXvf8UC8YIoL\n+0TAeRtM1+CEOR30M0z3dW8WOQKBgQDSlGuNS7ZT1XVmhjwOVZY2Bbpi9YhA+59p\ntHE94g8sGOPI0uH0VCKojNQZrYnTuRlGbGYtlB7NmA14P50DCRkOC0AybvGc0FP+\nimXwvgiZW56CS9wks/WHotrKMkwFjwjnLOe1zS2RdPwyHzkMRIZJ/d4vx2jnQ0rE\naGK3n4MEjQKBgQDXe8JWmkNIjW3J8twA5m8k0bm4C8jZoEtyJTLoGTTnIxrQLcAL\n8kHnfM1KpkQ8BytlZgAZjZx7EiQyLywk98xo+IfK9Hqi1riXVT26aklk+DnGqsZY\nSoSVW5BS8Msv9tWINIbEXB1/TqnlxFz78WmpF7ZUiniGXVtGqaJMiU+JuQKBgCGX\nF0jkqOLai+2cv/uxX1Kiu0aJ0AA9owIjjGTIqI7qMXuZV/23Zgfo3vRxoCirwAJh\nzDK9C+TTumJSE2Omkd6RoN3qoJPZD2zs+rHaPljoKnKyUx1vr1zBd5EFUOcaF9t4\naEWxwvEO7iO4o0r3q0wmOMj6UBuDumt2EzkjMq0JAoGAHIuITeoilhBTgAEYRbtd\nLtrx7PXVKeKF1VNSrbsgR31l+IsOCTrNcd6FxJeXQi/uCiRYq0iVzbT87IV5g9Gf\n3zKvk9dA8OU2/nZpajRqPTKqm0o9PELjZ3uLrOcea09n+g14cACneqOf/O0QwYhu\nceJIEBV23WnZCAV1gXKi6tA=\n-----END PRIVATE KEY-----\n",
+#    "client_email": "perturbseq@gwperturbseq.iam.gserviceaccount.com",
+#    "client_id": "114403865856498936028",
+#    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#    "token_uri": "https://oauth2.googleapis.com/token",
+#    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/perturbseq%40gwperturbseq.iam.gserviceaccount.com"
+#    },
+#)
+#pandas_gbq.context.credentials = credentials
+#pandas_gbq.context.project = "gwperturbseq"
 
 
 #region GENERAL
@@ -1937,8 +1937,8 @@ def loadData2():#dataSet =  pd.read_parquet("LRLG_FilteredExpressionFile.pq")
     
 
 def findPerturbationsRegulating(geneX):
-    df = pandas_gbq.read_gbq("SELECT GeneSymbol," + geneX + "  FROM `gwperturbseq.NewData.TableNew` ORDER BY " + geneX)
-    df
+    #df = pandas_gbq.read_gbq("SELECT GeneSymbol," + geneX + "  FROM `gwperturbseq.NewData.TableNew` ORDER BY " + geneX)
+    #df
     return df
     
     
